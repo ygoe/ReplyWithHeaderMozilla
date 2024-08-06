@@ -351,7 +351,7 @@ class ReplyWithHeader {
         let includeTimezone = await rwhSettings.isHeaderTimeZone();
 
         rwhLogger.debug('Date format: ' + (dateFormat == 1 ? 'UTC' : 'Locale (' + locale + ')')
-            + ', Time format: ' + (timeFormat == 1 ? '24-hour' : '12-hour')
+            + ', Time format: ' + (timeFormat == 1 ? '24-hour' : (timeFormat == 2 ? 'ISO' : '12-hour'))
             + (includeTimezone ? ', Include short timezone info' : ''))
 
         let epoch = null;
@@ -363,6 +363,37 @@ class ReplyWithHeader {
         }
 
         let pd = new Date(epoch);
+
+        if (timeFormat == 2) {
+			// ISO 8601 format
+			if (dateFormat == 1) {
+				// UTC time zone
+				return pd.toISOString().substring(0, 16).replace("T", " ") + " UTC";
+			}
+			else {
+				// Local time zone
+				let zone;
+				let offsetMins = -pd.getTimezoneOffset();
+				if (offsetMins >= 0) {
+					zone = "+" +
+						Math.trunc(offsetMins / 60).toString().padStart(2, "0") + ":" +
+						Math.trunc(offsetMins % 60).toString().padStart(2, "0");
+				}
+				else {
+					offsetMins = -offsetMins;
+					zone = "-" +
+						Math.trunc(offsetMins / 60).toString().padStart(2, "0") + ":" +
+						Math.trunc(offsetMins % 60).toString().padStart(2, "0");
+				}
+				return pd.getFullYear().toString().padStart(4, "0") + "-" +
+					(pd.getMonth() + 1).toString().padStart(2, "0") + "-" +
+					pd.getDate().toString().padStart(2, "0") + " " +
+					pd.getHours().toString().padStart(2, "0") + ":" +
+					pd.getMinutes().toString().padStart(2, "0") + " " +
+					zone;
+			}
+		}
+
         let options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric' };
 
         if (dateFormat == 1) { // Locale date format
