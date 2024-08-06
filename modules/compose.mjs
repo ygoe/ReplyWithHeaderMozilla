@@ -121,7 +121,7 @@ class ReplyWithHeader {
     async process(tab) {
         let result = { isModified: false };
 
-        if (rwhSettings.isTransSubjectPrefix()) {
+        if (await rwhSettings.isTransSubjectPrefix()) {
             result.subject = this._transformSubjectPrefix(this.#composeDetails.subject);
         }
 
@@ -164,7 +164,9 @@ class ReplyWithHeader {
             'cc': await this._extractHeader('cc', true, true),
             'date': await this._extractHeader('date', false, true),
             'reply-to': await this._extractHeader('reply-to', true, true),
-            'subject': this._transformSubjectPrefix(await this._extractHeader('subject', false, true)),
+            'subject': await rwhSettings.isTransSubjectPrefix() ?
+				this._transformSubjectPrefix(await this._extractHeader('subject', false, true)) :
+				await this._extractHeader('subject', false, true),
         }
         rwhLogger.debug(headers);
 
@@ -195,7 +197,7 @@ class ReplyWithHeader {
         if (this.isForward) {
             let mozForwardContainer = this._getByClassName('moz-forward-container');
             this._cleanNodesUpToClassName(mozForwardContainer, targetNodeClassName);
-			
+
 			// Insert 2 <br> before the headers to make it look like a reply does.
 			mozForwardContainer.insertAdjacentElement(positionAfterBegin, this._createElement('br'));
 			mozForwardContainer.insertAdjacentElement(positionAfterBegin, this._createElement('br'));
@@ -218,7 +220,9 @@ class ReplyWithHeader {
             'cc': await this._extractHeader('cc', true, false),
             'date': await this._extractHeader('date', false, false),
             'reply-to': await this._extractHeader('reply-to', true, false),
-            'subject': this._transformSubjectPrefix(await this._extractHeader('subject', false, false)),
+            'subject': await rwhSettings.isTransSubjectPrefix() ?
+				this._transformSubjectPrefix(await this._extractHeader('subject', false, false)) :
+				await this._extractHeader('subject', false, false),
         }
         rwhLogger.debug(headers);
 
